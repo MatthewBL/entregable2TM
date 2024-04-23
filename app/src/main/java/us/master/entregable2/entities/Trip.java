@@ -1,14 +1,15 @@
-package us.master.entregable1;
+package us.master.entregable2.entities;
+
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 public class Trip implements Parcelable {
+    private String _id;
     private static List<Trip> tripList = new ArrayList<>();
     private String destination;
     private String startPoint;
@@ -20,6 +21,7 @@ public class Trip implements Parcelable {
     private String image;
 
     protected Trip(Parcel in) {
+        _id = in.readString();
         destination = in.readString();
         startPoint = in.readString();
         price = in.readDouble();
@@ -32,6 +34,7 @@ public class Trip implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(_id);
         dest.writeString(destination);
         dest.writeString(startPoint);
         dest.writeDouble(price);
@@ -59,7 +62,8 @@ public class Trip implements Parcelable {
         }
     };
 
-    public Trip(String destination, String startPoint, LocalDate arrivalDate, LocalDate departureDate, double price, boolean isSelected, String description, String image) {
+    public Trip(String _id, String destination, String startPoint, LocalDate arrivalDate, LocalDate departureDate, double price, boolean isSelected, String description, String image) {
+        this._id = _id;
         this.destination = destination;
         this.startPoint = startPoint;
         this.arrivalDate = arrivalDate;
@@ -97,7 +101,7 @@ public class Trip implements Parcelable {
             String description = descriptions[destinationIndex];
             String image = images[destinationIndex];
 
-            tripList.add(new Trip(destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image));
+            tripList.add(new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image));
         }
     }
 
@@ -130,9 +134,13 @@ public class Trip implements Parcelable {
             String description = descriptions[destinationIndex];
             String image = images[destinationIndex];
 
-            tripList.add(new Trip(destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image));
+            tripList.add(new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image));
         }
     }
+
+    public String get_id(){ return _id; }
+
+    public void set_id(String id){ this._id = id; }
 
     public static List<Trip> getTripList() {
         return tripList;

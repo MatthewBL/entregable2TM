@@ -1,4 +1,4 @@
-package us.master.entregable1;
+package us.master.entregable2;
 
 import org.junit.Test;
 

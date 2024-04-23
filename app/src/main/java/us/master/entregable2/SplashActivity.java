@@ -1,10 +1,12 @@
-package us.master.entregable1;
+package us.master.entregable2;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+
+import us.master.entregable2.entities.Trip;
 
 public class SplashActivity extends AppCompatActivity {
 

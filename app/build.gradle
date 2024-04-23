@@ -1,13 +1,14 @@
 plugins {
     id 'com.android.application'
+    id 'com.google.gms.google-services'
 }
 
 android {
-    namespace 'us.master.entregable1'
+    namespace 'us.master.entregable2'
     compileSdk 31
 
     defaultConfig {
-        applicationId "us.master.entregable1"
+        applicationId "us.master.entregable2"
         minSdk 29
         targetSdk 31
         versionCode 1
@@ -49,6 +50,26 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.4.0'
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation 'androidx.cardview:cardview:1.0.0'
+
+    // Import the BoM for the Firebase platform
+    implementation platform('com.google.firebase:firebase-bom:29.2.0')
+
+    // Declare the dependencies for the Crashlytics and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-core'
+    implementation 'com.google.firebase:firebase-database'
+    implementation 'com.google.firebase:firebase-auth'
+
+    implementation 'com.google.android.gms:play-services-location:21.2.0'
+    implementation 'com.google.android.gms:play-services-maps:18.2.0'
+
+    implementation 'com.google.android.gms:play-services-auth:19.2.0'
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
 }
 
 configurations.all {

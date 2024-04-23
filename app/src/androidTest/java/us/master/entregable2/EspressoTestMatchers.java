@@ -1,24 +1,19 @@
 // EspressoTestMatchers.java
-package us.master.entregable1;
+package us.master.entregable2;
 
 import android.view.View;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.test.espresso.Root;
 import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.matcher.BoundedMatcher;
 import androidx.test.espresso.matcher.ViewMatchers;
 
-import android.os.IBinder;
-
-import android.view.WindowManager;
 import android.widget.SeekBar;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 
 public class EspressoTestMatchers {
 

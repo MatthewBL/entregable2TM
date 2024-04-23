@@ -1,4 +1,4 @@
-package us.master.entregable1;
+package us.master.entregable2;
 
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -17,6 +17,8 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import us.master.entregable2.entities.Trip;
 
 public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder> {
 

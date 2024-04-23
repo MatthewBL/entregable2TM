@@ -1,4 +1,4 @@
-package us.master.entregable1;
+package us.master.entregable2;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -9,10 +9,10 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import org.w3c.dom.Text;
-
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+
+import us.master.entregable2.entities.Trip;
 
 public class TripDetailsView extends AppCompatActivity {
 
