@@ -28,6 +28,8 @@ public class Trip implements Parcelable {
     private boolean isSelected;
     private String description;
     private String image;
+    private String subreddit;
+    private String articleId;
 
     protected Trip(Parcel in) {
         _id = in.readString();
@@ -39,6 +41,8 @@ public class Trip implements Parcelable {
         arrivalDate = (LocalDate) in.readSerializable();
         departureDate = (LocalDate) in.readSerializable();
         image = in.readString();
+        subreddit = in.readString();
+        articleId = in.readString();
     }
 
     @Override
@@ -52,6 +56,8 @@ public class Trip implements Parcelable {
         dest.writeSerializable(arrivalDate);
         dest.writeSerializable(departureDate);
         dest.writeString(image);
+        dest.writeString(subreddit);
+        dest.writeString(articleId);
     }
 
     @Override
@@ -71,7 +77,7 @@ public class Trip implements Parcelable {
         }
     };
 
-    public Trip(String _id, String destination, String startPoint, LocalDate arrivalDate, LocalDate departureDate, double price, boolean isSelected, String description, String image) {
+    public Trip(String _id, String destination, String startPoint, LocalDate arrivalDate, LocalDate departureDate, double price, boolean isSelected, String description, String image, String subreddit, String articleId) {
         this._id = _id;
         this.destination = destination;
         this.startPoint = startPoint;
@@ -81,6 +87,8 @@ public class Trip implements Parcelable {
         this.isSelected = isSelected;
         this.description = description;
         this.image = image;
+        this.subreddit = subreddit;
+        this.articleId = articleId;
     }
 
     public static void generateTripData() {
@@ -97,6 +105,8 @@ public class Trip implements Parcelable {
                 "https://www.spain.info/export/sites/segtur/.content/imagenes/reportajes/madrid/plaza-callao-gran-via-madrid-c-giuseppe-buccola-u1128812.jpg",
                 "https://i.natgeofe.com/n/2024d353-131c-4c29-a04f-5589c541e980/beijing_travel_square.jpg",
                 "https://i.natgeofe.com/n/560b293d-80b2-4449-ad6c-036a249d46f8/rio-de-janeiro-travel_square.jpg"};
+        String[] subreddits = {"EmilyInParis", "solotravel", "AskAnAmerican", "Tokyo", "sydney", "travel", "travel", "travel", "beijing", "travel"};
+        String[] articleIds = {"y5ujsg", "9cdpdk", "uw5dwc", "44r46g", "16ibt0i", "uug49c", "pwdj43", "11466s6", "15he1ao", "17avy5u"};
 
         Random random = new Random();
         for (int i = 0; i < 20; i++) {
@@ -109,8 +119,10 @@ public class Trip implements Parcelable {
             boolean isSelected = false;
             String description = descriptions[destinationIndex];
             String image = images[destinationIndex];
+            String subreddit = subreddits[destinationIndex];
+            String articleId = articleIds[destinationIndex];
 
-            Trip trip = new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image);
+            Trip trip = new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image, subreddit, articleId);
             FirebaseDatabaseService.getServiceInstance().saveTrip(trip);
         }
     }
@@ -152,6 +164,8 @@ public class Trip implements Parcelable {
                 "https://www.spain.info/export/sites/segtur/.content/imagenes/reportajes/madrid/plaza-callao-gran-via-madrid-c-giuseppe-buccola-u1128812.jpg",
                 "https://i.natgeofe.com/n/2024d353-131c-4c29-a04f-5589c541e980/beijing_travel_square.jpg",
                 "https://i.natgeofe.com/n/560b293d-80b2-4449-ad6c-036a249d46f8/rio-de-janeiro-travel_square.jpg"};
+        String[] subreddits = {"EmilyInParis", "solotravel", "AskAnAmerican", "Tokyo", "sydney", "travel", "travel", "travel", "beijing", "travel"};
+        String[] articleIds = {"y5ujsg", "9cdpdk", "uw5dwc", "44r46g", "16ibt0i", "uug49c", "pwdj43", "11466s6", "15he1ao", "17avy5u"};
 
         Random random = new Random(seed);
         for (int i = 0; i < 20; i++) {
@@ -164,8 +178,10 @@ public class Trip implements Parcelable {
             boolean isSelected = false;
             String description = descriptions[destinationIndex];
             String image = images[destinationIndex];
+            String subreddit = subreddits[destinationIndex];
+            String articleId = articleIds[destinationIndex];
 
-            Trip trip = new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image);
+            Trip trip = new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image, subreddit, articleId);
             FirebaseDatabaseService.getServiceInstance().saveTrip(trip);
         }
     }
@@ -250,6 +266,22 @@ public class Trip implements Parcelable {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getSubreddit() {
+        return subreddit;
+    }
+
+    public void setSubreddit(String subreddit) {
+        this.subreddit = subreddit;
+    }
+
+    public String getArticleId() {
+        return articleId;
+    }
+
+    public void setArticleId(String articleId) {
+        this.articleId = articleId;
     }
 
     @Override

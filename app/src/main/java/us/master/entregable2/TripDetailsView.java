@@ -1,11 +1,11 @@
 package us.master.entregable2;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Base64;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -15,32 +15,55 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import us.master.entregable2.entities.Trip;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import us.master.entregable2.services.GoogleMapsService;
-
-import org.json.JSONObject;
+import us.master.entregable2.services.PropertiesManager;
+import us.master.entregable2.services.RedditAuthInterface;
+import us.master.entregable2.services.RedditCommentThreadInterface;
 
 public class TripDetailsView extends FragmentActivity implements OnMapReadyCallback {
+    private String redditAccessToken;
+    List<String> comments = new ArrayList<>();
     private GoogleMap mMap;
     private Trip trip;
+    Retrofit retrofit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trip_details_view);
-        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        supportMapFragment.getMapAsync(this);
 
         Intent intent = getIntent();
         trip = intent.getParcelableExtra("trip");
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl("https://www.reddit.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        redditLogin();
+        redditGetThread(trip.getSubreddit(), trip.getArticleId(), 3, 1);
+
+        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        supportMapFragment.getMapAsync(this);
 
         TextView destinationTextView = findViewById(R.id.textView5);
         TextView priceTextView = findViewById(R.id.priceValue);
@@ -50,6 +73,9 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
         ImageView isSelectedImageView = findViewById(R.id.selectedValue);
         ImageView imageView = findViewById(R.id.imageView4);
         TextView descriptionTextView = findViewById(R.id.textView4);
+        TextView comment1TextView = findViewById(R.id.comment1);
+        TextView comment2TextView = findViewById(R.id.comment2);
+        TextView comment3TextView = findViewById(R.id.comment3);
 
         Picasso.get()
                 .load(trip.getImage())
@@ -74,14 +100,112 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
         }
 
         descriptionTextView.setText(trip.getDescription());
+
+        if (comments.size() > 0) {
+            comment1TextView.setVisibility(TextView.VISIBLE);
+            comment1TextView.setText("Opinion: " + comments.get(0));
+        }
+        if (comments.size() > 1) {
+            comment2TextView.setVisibility(TextView.VISIBLE);
+            comment2TextView.setText("Opinion: " + comments.get(1));
+        }
+        if (comments.size() > 2) {
+            comment3TextView.setVisibility(TextView.VISIBLE);
+            comment3TextView.setText("Opinion: " + comments.get(2));
+        }
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         this.mMap = googleMap;
 
-        LatLng location = trip.getDestinationLatLng(getString(R.string.google_maps_key));
+        Properties properties = PropertiesManager.loadProperties(this);
+        String apiKey = properties.getProperty("google_maps_key");
+        LatLng location = trip.getDestinationLatLng(apiKey);
         mMap.addMarker(new MarkerOptions().title(trip.getDestination()).position(location));
         mMap.animateCamera(CameraUpdateFactory.newLatLng(location));
+    }
+
+    private void redditLogin() {
+        RedditAuthInterface redditAuthAPI = retrofit.create(RedditAuthInterface.class);
+
+        Properties properties = PropertiesManager.loadProperties(this);
+        String clientId = properties.getProperty("clientId");
+        String clientSecret = properties.getProperty("clientSecret");
+        String username = properties.getProperty("username");
+        String password = properties.getProperty("password");
+
+        String authHeader = "Basic " + Base64.encodeToString((clientId + ":" + clientSecret).getBytes(), Base64.NO_WRAP);
+        Call<ResponseBody> call = redditAuthAPI.getAccessToken(authHeader, "password", username, password);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        String json = response.body().string();
+                        Gson gson = new Gson();
+                        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+                        redditAccessToken = jsonObject.get("access_token").getAsString();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    // TODO: Handle the error
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                // TODO: Handle the failure
+            }
+        });
+    }
+
+    private void redditGetThread(String subreddit, String articleId, int limit, int depth) {
+        String authHeader = "Bearer " + redditAccessToken;
+        RedditCommentThreadInterface redditCommentThreadAPI = retrofit.create(RedditCommentThreadInterface.class);
+        Call<ResponseBody> call = redditCommentThreadAPI.getComments(authHeader, subreddit, articleId, limit, depth);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        String json = response.body().string();
+                        Gson gson = new Gson();
+                        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+                        JsonArray children = jsonObject.getAsJsonObject("data").getAsJsonArray("children");
+                        comments = new ArrayList<>();
+                        for (JsonElement child : children) {
+                            JsonObject data = child.getAsJsonObject().getAsJsonObject("data");
+                            if (data.has("replies")) {
+                                JsonObject replies = data.getAsJsonObject("replies");
+                                if (replies.has("data")) {
+                                    JsonArray replyChildren = replies.getAsJsonObject("data").getAsJsonArray("children");
+                                    for (JsonElement replyChild : replyChildren) {
+                                        JsonObject replyData = replyChild.getAsJsonObject().getAsJsonObject("data");
+                                        if (replyData.has("body")) {
+                                            String comment = replyData.get("body").getAsString();
+                                            if (comment.length() > 200) {
+                                                comment = comment.substring(0, 200).trim() + "...";
+                                            }
+                                            comments.add(comment);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    // TODO: Handle the error
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                // TODO: Handle the failure
+            }
+        });
     }
 }

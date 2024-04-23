@@ -33,9 +33,12 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import us.master.entregable2.entities.Trip;
+import us.master.entregable2.services.PropertiesManager;
+
 import com.google.android.gms.maps.model.LatLng;
 
 public class TripList extends AppCompatActivity {
@@ -187,7 +190,9 @@ public class TripList extends AppCompatActivity {
                 .filter(trip -> trip.getPrice() <= maxPrice)
                 .filter(trip -> {
                     if (airportCheckBox) {
-                        LatLng startPointLatLng = trip.getStartPointLatLng(getString(R.string.google_maps_key));
+                        Properties properties = PropertiesManager.loadProperties(this);
+                        String apiKey = properties.getProperty("google_maps_key");
+                        LatLng startPointLatLng = trip.getStartPointLatLng(apiKey);
                         return getDistanceInKm(userLocation, startPointLatLng) <= 30;
                     } else {
                         return true;
