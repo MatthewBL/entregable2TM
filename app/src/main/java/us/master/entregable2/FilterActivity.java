@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -30,6 +31,7 @@ public class FilterActivity extends AppCompatActivity {
     private SeekBar maxPriceSeekBar;
     private TextView maxPriceTextView;
     private Button saveAndReturnButton;
+    private CheckBox airportCheckBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +47,14 @@ public class FilterActivity extends AppCompatActivity {
         maxPriceSeekBar = findViewById(R.id.maxPriceSeekBar);
         maxPriceTextView = findViewById(R.id.maxPriceTextView);
         saveAndReturnButton = findViewById(R.id.button3);
+        airportCheckBox = findViewById(R.id.airportCheckBox);
 
         Intent intent = getIntent();
         String startDate = intent.getStringExtra("startDate");
         String endDate = intent.getStringExtra("endDate");
         int minPrice = intent.getIntExtra("minPrice", 0);
         int maxPrice = intent.getIntExtra("maxPrice", 0);
+        boolean airportCheckBoxValue = intent.getBooleanExtra("airportCheckBox", false);
 
         // Set the initial state of the filter controls
         startDateTextView.setText(startDate);
@@ -59,6 +63,7 @@ public class FilterActivity extends AppCompatActivity {
         maxPriceSeekBar.setProgress(maxPrice);
         minPriceTextView.setText("Precio mínimo: " + minPrice + "€");
         maxPriceTextView.setText("Precio máximo: " + maxPrice + "€");
+        airportCheckBox.setChecked(airportCheckBoxValue);
 
         startDateImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,6 +113,13 @@ public class FilterActivity extends AppCompatActivity {
             }
         });
 
+        airportCheckBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                airportCheckBox.setChecked(!airportCheckBox.isChecked());
+            }
+        });
+
         // When the save button is clicked
         saveAndReturnButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -117,6 +129,7 @@ public class FilterActivity extends AppCompatActivity {
                 resultIntent.putExtra("endDate", endDateTextView.getText().toString());
                 resultIntent.putExtra("minPrice", minPriceSeekBar.getProgress());
                 resultIntent.putExtra("maxPrice", maxPriceSeekBar.getProgress());
+                resultIntent.putExtra("airportCheckBox", airportCheckBox.isChecked());
                 setResult(RESULT_OK, resultIntent);
                 finish();
             }

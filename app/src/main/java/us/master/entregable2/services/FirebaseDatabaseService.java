@@ -9,6 +9,7 @@ import us.master.entregable2.entities.Trip;
 import us.master.entregable2.entities.User;
 
 public class FirebaseDatabaseService {
+    public static Boolean testing = false;
     private static String userId;
     private static FirebaseDatabaseService service;
     private static FirebaseDatabase mDatabase;
@@ -53,22 +54,56 @@ public class FirebaseDatabaseService {
     }
 
     public Task<Void> saveTrip(Trip trip) {
-        return mDatabase.getReference("trips/").setValue(trip);
+        if (testing) {
+            return mDatabase.getReference("test_trips/").setValue(trip);
+        }
+        else {
+            return mDatabase.getReference("trips/").setValue(trip);
+        }
     }
 
     public Task<Void> updateTrip(Trip trip) {
-        return mDatabase.getReference("trips/" + trip.get_id()).setValue(trip);
+        if (testing) {
+            return mDatabase.getReference("test_trips/" + trip.get_id()).setValue(trip);
+        }
+        else {
+            return mDatabase.getReference("trips/" + trip.get_id()).setValue(trip);
+        }
     }
 
     public Task<Void> removeTrip(String tripId) {
-        return mDatabase.getReference("trips/" + tripId).removeValue();
+        if (testing) {
+            return mDatabase.getReference("test_trips/" + tripId).removeValue();
+        }
+        else {
+            return mDatabase.getReference("trips/" + tripId).removeValue();
+        }
     }
 
     public DatabaseReference getTrip(String tripId) {
-        return mDatabase.getReference("trips/" + tripId).getRef();
+        if (testing) {
+            return mDatabase.getReference("test_trips/" + tripId).getRef();
+        }
+        else {
+            return mDatabase.getReference("trips/" + tripId).getRef();
+        }
     }
 
     public DatabaseReference getTrips() {
-        return mDatabase.getReference("trips/").getRef();
+        if (testing) {
+            return mDatabase.getReference("test_trips/").getRef();
+        }
+        else {
+            return mDatabase.getReference("trips/").getRef();
+        }
+    }
+
+    public Task<Void> clearTrips() {
+        if (testing) {
+            return mDatabase.getReference("test_trips/").removeValue();
+        }
+        else {
+            return mDatabase.getReference("trips/").removeValue();
+        }
     }
 }

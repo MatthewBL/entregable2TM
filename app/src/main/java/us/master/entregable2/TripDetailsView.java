@@ -1,28 +1,46 @@
 package us.master.entregable2;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.squareup.picasso.Picasso;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import us.master.entregable2.entities.Trip;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import us.master.entregable2.services.GoogleMapsService;
 
-public class TripDetailsView extends AppCompatActivity {
+import org.json.JSONObject;
+
+public class TripDetailsView extends FragmentActivity implements OnMapReadyCallback {
+    private GoogleMap mMap;
+    private Trip trip;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trip_details_view);
+        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        supportMapFragment.getMapAsync(this);
 
         Intent intent = getIntent();
-        Trip trip = intent.getParcelableExtra("trip");
+        trip = intent.getParcelableExtra("trip");
 
         TextView destinationTextView = findViewById(R.id.textView5);
         TextView priceTextView = findViewById(R.id.priceValue);
@@ -56,5 +74,14 @@ public class TripDetailsView extends AppCompatActivity {
         }
 
         descriptionTextView.setText(trip.getDescription());
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        this.mMap = googleMap;
+
+        LatLng location = trip.getDestinationLatLng(getString(R.string.google_maps_key));
+        mMap.addMarker(new MarkerOptions().title(trip.getDestination()).position(location));
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(location));
     }
 }

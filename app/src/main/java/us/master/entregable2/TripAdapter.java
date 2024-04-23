@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 
 import us.master.entregable2.entities.Trip;
+import us.master.entregable2.services.FirebaseDatabaseService;
 
 public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder> {
 
@@ -75,6 +76,8 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
             public void onClick(View v) {
                 // Toggle the isSelected value of the trip
                 trip.setSelected(!trip.isSelected());
+
+                FirebaseDatabaseService.getServiceInstance().updateTrip(trip);
 
                 // Get the current position
                 int currentPosition = holder.getAdapterPosition();

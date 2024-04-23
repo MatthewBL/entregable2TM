@@ -43,7 +43,7 @@ import us.master.entregable2.services.LocalPreferences;
 //import es.us.lsi.acme.market.services.ApiRestCalls;
 
 public class LoginActivity extends AppCompatActivity {
-    private static final int REQUEST_CODE_SIGN_IN = 0;
+    private static final int REQUEST_CODE_SIGN_IN = 0x456;
     private FirebaseAuth mAuth;
     private Button signinButtonGoogle;
     private Button signinButtonMail;

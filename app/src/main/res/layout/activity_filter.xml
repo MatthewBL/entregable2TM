@@ -107,6 +107,12 @@
         android:text="TextView"
         android:visibility="invisible" />
 
+    <CheckBox
+        android:id="@+id/airportCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Aeropuertos de salida a de mí 30kms" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

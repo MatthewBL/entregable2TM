@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "46254930699",
+    "project_id": "entregable2tm",
+    "storage_bucket": "entregable2tm.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:46254930699:android:9b40c3af2182668857c00e",
+        "android_client_info": {
+          "package_name": "us.master.entregable2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "46254930699-qtouduqrckt7mfju813lvdd92go0ggto.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "us.master.entregable2",
+            "certificate_hash": "e3a16429b0b9a88ac5e8de6015d4e5956173a3b1"
+          }
+        },
+        {
+          "client_id": "46254930699-7nsf20phn780l5cddfka0c8okg2tva2f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJ_XtboL8o1875sHr9MipSkjmQoHRTPu4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "46254930699-7nsf20phn780l5cddfka0c8okg2tva2f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

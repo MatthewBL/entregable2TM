@@ -25,7 +25,7 @@
     <string name="register_reset_mail_error">Correo electrónico inválido.</string>
     <string name="default_web_client_id">46254930699-7nsf20phn780l5cddfka0c8okg2tva2f.apps.googleusercontent.com</string>
     <string name="title_activity_main2">MainActivity2</string>
-    <string name="location_rationale">Ubicación necesaria para funcionamiento de la aplicación.</string>
+    <string name="location_rationale">Los permisos de ubicación son necesarios para el funcionamiento de la aplicación.</string>
     <string name="location_rationale_ok">Aceptar</string>
     <string name="location_denied">Permiso imprescindible denegado</string>
     <string name="login_error_mail_empty">El campo de correo electrónico está vacío</string>

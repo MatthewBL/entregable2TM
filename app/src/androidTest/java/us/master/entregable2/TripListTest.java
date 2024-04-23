@@ -31,7 +31,7 @@ public class TripListTest {
 
     @Test
     public void ensureColumnToggleWorks() throws Exception {
-        Trip.generateTripList(123456789);
+        Trip.generateTestTripList(123456789);
 
         // Check if the RecyclerView's layout manager has a span count of 1
         Espresso.onView(withId(R.id.recyclerView))
@@ -57,7 +57,7 @@ public class TripListTest {
     @Test
     public void testFilterActivityStartDate() throws Exception {
         // Generate the trip list
-        Trip.generateTripList(123456789);
+        Trip.generateTestTripList(123456789);
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
 
         Espresso.onView(withId(R.id.recyclerView))
@@ -117,7 +117,7 @@ public class TripListTest {
     @Test
     public void testFilterActivityEndDate() throws Exception {
         // Generate the trip list
-        Trip.generateTripList(123456789);
+        Trip.generateTestTripList(123456789);
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
 
         Espresso.onView(withId(R.id.recyclerView))
@@ -175,7 +175,7 @@ public class TripListTest {
     @Test
     public void testFilterActivityBothDates() throws Exception {
         // Generate the trip list
-        Trip.generateTripList(123456789);
+        Trip.generateTestTripList(123456789);
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
         LocalDate nextNextMonth = LocalDate.now().plusMonths(2);
 
@@ -244,7 +244,7 @@ public class TripListTest {
     }
     @Test
     public void testFilterMinPrice() {
-        Trip.generateTripList(123456789);
+        Trip.generateTestTripList(123456789);
 
         Espresso.onView(withId(R.id.recyclerView))
                 .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
@@ -295,7 +295,7 @@ public class TripListTest {
     }
     @Test
     public void testFilterMaxPrice() {
-        Trip.generateTripList(123456789);
+        Trip.generateTestTripList(123456789);
 
         Espresso.onView(withId(R.id.recyclerView))
                 .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
@@ -346,7 +346,7 @@ public class TripListTest {
     }
     @Test
     public void testFilterBothPrices() {
-        Trip.generateTripList(123456789);
+        Trip.generateTestTripList(123456789);
 
         Espresso.onView(withId(R.id.recyclerView))
                 .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
@@ -405,7 +405,7 @@ public class TripListTest {
     }
     @Test
     public void testAllFilters() {
-        Trip.generateTripList(123456789);
+        Trip.generateTestTripList(123456789);
         LocalDate nextMonth = LocalDate.now().plusMonths(1);
         LocalDate nextNextMonth = LocalDate.now().plusMonths(2);
 

@@ -3,10 +3,19 @@ package us.master.entregable2.entities;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import us.master.entregable2.services.FirebaseDatabaseService;
+import us.master.entregable2.services.GoogleMapsService;
 
 public class Trip implements Parcelable {
     private String _id;
@@ -74,7 +83,7 @@ public class Trip implements Parcelable {
         this.image = image;
     }
 
-    public static void generateTripList(){
+    public static void generateTripData() {
         String[] destinations = {"París", "Londres", "Nueva York", "Tokio", "Sídney", "Roma", "Berlín", "Madrid", "Pekín", "Río de Janeiro"};
         String[] startPoints = {"Madrid", "Barcelona", "Valencia", "Sevilla", "Bilbao", "Málaga", "Oviedo", "Santander", "Zaragoza", "Murcia"};
         String[] descriptions = {"Viaje a la ciudad del amor", "Viaje a la ciudad de la lluvia", "Viaje a la ciudad de los rascacielos", "Viaje a la ciudad del sushi", "Viaje a la ciudad de los koalas", "Viaje a la ciudad de los gladiadores", "Viaje a la ciudad de la cerveza", "Viaje a la ciudad del bocadillo de calamares", "Viaje a la ciudad de la Gran Muralla", "Viaje a la ciudad de la samba"};
@@ -101,12 +110,34 @@ public class Trip implements Parcelable {
             String description = descriptions[destinationIndex];
             String image = images[destinationIndex];
 
-            tripList.add(new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image));
+            Trip trip = new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image);
+            FirebaseDatabaseService.getServiceInstance().saveTrip(trip);
         }
     }
 
-    public static void generateTripList(long seed){
+    public static void readTripData() {
         tripList.clear();
+        DatabaseReference tripsRef = FirebaseDatabaseService.getServiceInstance().getTrips();
+        tripsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot tripSnapshot: dataSnapshot.getChildren()) {
+                    Trip trip = tripSnapshot.getValue(Trip.class);
+                    tripList.add(trip);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Handle possible errors.
+            }
+        });
+    }
+
+    public static void generateTestTripList(long seed){
+        tripList.clear();
+        FirebaseDatabaseService.testing = true;
+        FirebaseDatabaseService.getServiceInstance().clearTrips();
 
         String[] destinations = {"París", "Londres", "Nueva York", "Tokio", "Sídney", "Roma", "Berlín", "Madrid", "Pekín", "Río de Janeiro"};
         String[] startPoints = {"Madrid", "Barcelona", "Valencia", "Sevilla", "Bilbao", "Málaga", "Oviedo", "Santander", "Zaragoza", "Murcia"};
@@ -134,7 +165,8 @@ public class Trip implements Parcelable {
             String description = descriptions[destinationIndex];
             String image = images[destinationIndex];
 
-            tripList.add(new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image));
+            Trip trip = new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image);
+            FirebaseDatabaseService.getServiceInstance().saveTrip(trip);
         }
     }
 
@@ -231,5 +263,13 @@ public class Trip implements Parcelable {
                 ", isSelected=" + isSelected +
                 ", description='" + description + '\'' +
                 '}';
+    }
+
+    public LatLng getDestinationLatLng(String google_maps_key) {
+        return GoogleMapsService.getLatLngFromCityName(destination, google_maps_key);
+    }
+
+    public LatLng getStartPointLatLng(String google_maps_key) {
+        return GoogleMapsService.getLatLngFromCityName(startPoint, google_maps_key);
     }
 }
