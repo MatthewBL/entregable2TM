@@ -125,15 +125,44 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
         holder.cartIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(v.getContext(), "Has comprado el viaje con destino " + trip.getDestination() + " por " + String.format("%.2f", trip.getPrice()) + " €", Toast.LENGTH_SHORT).show();
+
+                FirebaseDatabaseService.getCurrentUser(new UserCallback() {
+                    @Override
+                    public void onCallback(User user) {
+                        if (user != null) {
+                            user.buyTrip(trip.get_id());
+                            // Update the user in the database
+                            FirebaseDatabaseService.getServiceInstance().saveUser(user);
+                            Toast.makeText(v.getContext(), "Has comprado el viaje con destino " + trip.getDestination() + " por " + String.format("%.2f", trip.getPrice()) + " €", Toast.LENGTH_SHORT).show();
+
+                            // Get the current position
+                            int currentPosition = holder.getAdapterPosition();
+
+                            // If the list is not selecting bought trips and the trip is unselected, remove it from the list
+                            if (user.isBought(trip.get_id()) && !display.equals("bought") && currentPosition != RecyclerView.NO_POSITION) {
+                                tripList.remove(currentPosition);
+                                notifyDataSetChanged();
+                            }
+                        } else {
+                            // Handle the case where there is no logged in user
+                        }
+                    }
+                });
             }
         });
 
-        // Hide the cartIcon if the list is not the selected trip list
-        if (!display.equals("selected")) {
-            holder.cartIcon.setVisibility(View.GONE);
+        // Hide the star if the list is the bought trip list
+        if (display.equals("bought")) {
+            holder.imageViewRight.setVisibility(View.GONE);
         } else {
+            holder.imageViewRight.setVisibility(View.VISIBLE);
+        }
+
+        // Hide the cartIcon if the list is not the selected trip list
+        if (display.equals("selected")) {
             holder.cartIcon.setVisibility(View.VISIBLE);
+        } else {
+            holder.cartIcon.setVisibility(View.GONE);
         }
     }
 
