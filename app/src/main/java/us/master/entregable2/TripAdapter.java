@@ -19,17 +19,19 @@ import java.util.List;
 import java.util.Locale;
 
 import us.master.entregable2.entities.Trip;
+import us.master.entregable2.entities.User;
 import us.master.entregable2.services.FirebaseDatabaseService;
+import us.master.entregable2.services.UserCallback;
 
 public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder> {
 
     private List<Trip> tripList;
-    private boolean displaySelected;
+    private String display = "";
     private boolean isTwoColumnLayout;
 
-    public TripAdapter(List<Trip> tripList, boolean displaySelected, boolean isTwoColumnLayout) {
+    public TripAdapter(List<Trip> tripList, String display, boolean isTwoColumnLayout) {
         this.tripList = tripList;
-        this.displaySelected = displaySelected;
+        this.display = display;
         this.isTwoColumnLayout = isTwoColumnLayout;
     }
 
@@ -63,37 +65,59 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
 
         holder.priceTextViewRight.setText(String.format(Locale.getDefault(), "%.2f €", trip.getPrice()));
 
-        // Set the star image based on whether the trip is selected or not
-        if (trip.isSelected()) {
-            holder.imageViewRight.setImageResource(android.R.drawable.star_big_on);
-        } else {
-            holder.imageViewRight.setImageResource(android.R.drawable.star_big_off);
-        }
+        FirebaseDatabaseService.getCurrentUser(new UserCallback() {
+            @Override
+            public void onCallback(User user) {
+                if (user != null) {
+                    // Set the star image based on whether the trip is selected or not
+                    if (user.isSelected(trip.get_id())) {
+                        holder.imageViewRight.setImageResource(android.R.drawable.star_big_on);
+                    } else {
+                        holder.imageViewRight.setImageResource(android.R.drawable.star_big_off);
+                    }
+                } else {
+                    // Handle the case where there is no logged in user
+                }
+            }
+        });
 
         // Add an OnClickListener to the imageViewRight
         holder.imageViewRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Toggle the isSelected value of the trip
-                trip.setSelected(!trip.isSelected());
+                FirebaseDatabaseService.getCurrentUser(new UserCallback() {
+                    @Override
+                    public void onCallback(User user) {
+                        if (user != null) {
+                            // Toggle the isSelected value of the trip
+                            if (user.isSelected(trip.get_id())) {
+                                user.deselectTrip(trip.get_id());
+                            } else {
+                                user.selectTrip(trip.get_id());
+                            }
+                            // Update the user in the database
+                            FirebaseDatabaseService.getServiceInstance().saveUser(user);
 
-                FirebaseDatabaseService.getServiceInstance().updateTrip(trip);
+                            // Get the current position
+                            int currentPosition = holder.getAdapterPosition();
 
-                // Get the current position
-                int currentPosition = holder.getAdapterPosition();
-
-                // If the list is only displaying selected trips and the trip is unselected, remove it from the list
-                if (!trip.isSelected() && displaySelected && currentPosition != RecyclerView.NO_POSITION) {
-                    tripList.remove(currentPosition);
-                    notifyDataSetChanged();
-                } else {
-                    // Update the star image based on the new isSelected value
-                    if (trip.isSelected()) {
-                        holder.imageViewRight.setImageResource(android.R.drawable.star_big_on);
-                    } else {
-                        holder.imageViewRight.setImageResource(android.R.drawable.star_big_off);
+                            // If the list is only displaying selected trips and the trip is unselected, remove it from the list
+                            if (!user.isSelected(trip.get_id()) && display.equals("selected") && currentPosition != RecyclerView.NO_POSITION) {
+                                tripList.remove(currentPosition);
+                                notifyDataSetChanged();
+                            } else {
+                                // Update the star image based on the new isSelected value
+                                if (user.isSelected(trip.get_id())) {
+                                    holder.imageViewRight.setImageResource(android.R.drawable.star_big_on);
+                                } else {
+                                    holder.imageViewRight.setImageResource(android.R.drawable.star_big_off);
+                                }
+                            }
+                        } else {
+                            // Handle the case where there is no logged in user
+                        }
                     }
-                }
+                });
             }
         });
 
@@ -106,7 +130,7 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
         });
 
         // Hide the cartIcon if the list is not the selected trip list
-        if (!displaySelected) {
+        if (!display.equals("selected")) {
             holder.cartIcon.setVisibility(View.GONE);
         } else {
             holder.cartIcon.setVisibility(View.VISIBLE);

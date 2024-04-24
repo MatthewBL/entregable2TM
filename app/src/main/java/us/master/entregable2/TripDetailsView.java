@@ -35,9 +35,12 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import us.master.entregable2.entities.Trip;
+import us.master.entregable2.entities.User;
+import us.master.entregable2.services.FirebaseDatabaseService;
 import us.master.entregable2.services.PropertiesManager;
 import us.master.entregable2.services.RedditAuthInterface;
 import us.master.entregable2.services.RedditCommentThreadInterface;
+import us.master.entregable2.services.UserCallback;
 
 public class TripDetailsView extends FragmentActivity implements OnMapReadyCallback {
     private String redditAccessToken;
@@ -91,13 +94,24 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
 
         startPointTextView.setText(trip.getStartPoint());
 
-        if (trip.isSelected()) {
-            isSelectedImageView.setImageResource(android.R.drawable.btn_star_big_on);
-            isSelectedImageView.setTag("android.R.drawable.star_big_on");
-        } else {
-            isSelectedImageView.setImageResource(android.R.drawable.btn_star_big_off);
-            isSelectedImageView.setTag("android.R.drawable.star_big_off");
-        }
+        FirebaseDatabaseService.getCurrentUser(new UserCallback() {
+            @Override
+            public void onCallback(User user) {
+                if (user != null) {
+                    // Set the star image based on whether the trip is selected or not
+                    if (user.isSelected(trip.get_id())) {
+                        isSelectedImageView.setImageResource(android.R.drawable.btn_star_big_on);
+                        isSelectedImageView.setTag("android.R.drawable.star_big_on");
+                    } else {
+                        isSelectedImageView.setImageResource(android.R.drawable.btn_star_big_off);
+                        isSelectedImageView.setTag("android.R.drawable.star_big_off");
+                    }
+                } else {
+                    // Handle the case where there is no logged in user
+                }
+            }
+        });
+
 
         descriptionTextView.setText(trip.getDescription());
 

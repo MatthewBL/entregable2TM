@@ -37,7 +37,10 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import us.master.entregable2.entities.Trip;
+import us.master.entregable2.entities.User;
+import us.master.entregable2.services.FirebaseDatabaseService;
 import us.master.entregable2.services.PropertiesManager;
+import us.master.entregable2.services.UserCallback;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -78,20 +81,31 @@ public class TripList extends AppCompatActivity {
             startLocationService();
         }
 
-        boolean displaySelected = getIntent().getBooleanExtra("displaySelected", false);
+        String display = getIntent().getStringExtra("display");
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
 
-        if (displaySelected) {
-            tripList = Trip.getSelectedTripList();
-        } else {
-            tripList = Trip.getTripList();
-        }
+        FirebaseDatabaseService.getCurrentUser(new UserCallback() {
+            @Override
+            public void onCallback(User user) {
+                if (user != null) {
+                    if (display != null && display.equals("selected")) {
+                        tripList = Trip.getSelectedTripList(user);
+                    } else if (display != null && display.equals("bought")) {
+                        tripList = Trip.getBoughtTripList(user);
+                    } else {
+                        tripList = Trip.getNonBoughtTripList(user);
+                    }
+                } else {
+                    // Handle the case where there is no logged in user
+                }
+            }
+        });
 
         columnasSwitch = findViewById(R.id.columnasSwitch);
 
-        adapter = new TripAdapter(tripList, displaySelected, columnasSwitch.isChecked());
+        adapter = new TripAdapter(tripList, display, columnasSwitch.isChecked());
         recyclerView.setAdapter(adapter);
 
         filtrarTextView = findViewById(R.id.filtrarTextView);
@@ -110,7 +124,7 @@ public class TripList extends AppCompatActivity {
                             maxPrice = data.getIntExtra("maxPrice", 0);
                             airportCheckBox = data.getBooleanExtra("airportCheckBox", false);
 
-                            adapter = new TripAdapter(tripList, displaySelected, columnLayout);
+                            adapter = new TripAdapter(tripList, display, columnLayout);
                             applyFilters();
                             recyclerView.setAdapter(adapter);
                         }
@@ -145,7 +159,7 @@ public class TripList extends AppCompatActivity {
                     recyclerView.setLayoutManager(new GridLayoutManager(TripList.this, 1));
                 }
                 columnLayout = isChecked;
-                adapter = new TripAdapter(tripList, displaySelected, isChecked);
+                adapter = new TripAdapter(tripList, display, isChecked);
                 applyFilters();
                 recyclerView.setAdapter(adapter);
             }

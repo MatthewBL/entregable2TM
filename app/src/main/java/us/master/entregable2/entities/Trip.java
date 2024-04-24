@@ -25,7 +25,6 @@ public class Trip implements Parcelable {
     private LocalDate arrivalDate;
     private LocalDate departureDate;
     private double price;
-    private boolean isSelected;
     private String description;
     private String image;
     private String subreddit;
@@ -36,7 +35,6 @@ public class Trip implements Parcelable {
         destination = in.readString();
         startPoint = in.readString();
         price = in.readDouble();
-        isSelected = in.readByte() != 0;
         description = in.readString();
         arrivalDate = (LocalDate) in.readSerializable();
         departureDate = (LocalDate) in.readSerializable();
@@ -51,7 +49,6 @@ public class Trip implements Parcelable {
         dest.writeString(destination);
         dest.writeString(startPoint);
         dest.writeDouble(price);
-        dest.writeByte((byte) (isSelected ? 1 : 0));
         dest.writeString(description);
         dest.writeSerializable(arrivalDate);
         dest.writeSerializable(departureDate);
@@ -84,7 +81,6 @@ public class Trip implements Parcelable {
         this.arrivalDate = arrivalDate;
         this.departureDate = departureDate;
         this.price = price;
-        this.isSelected = isSelected;
         this.description = description;
         this.image = image;
         this.subreddit = subreddit;
@@ -194,14 +190,34 @@ public class Trip implements Parcelable {
         return tripList;
     }
 
-    public static List<Trip> getSelectedTripList() {
+    public static List<Trip> getSelectedTripList(User user) {
         List<Trip> selectedTripList = new ArrayList<>();
         for (Trip trip : tripList) {
-            if (trip.isSelected()) {
+            if (trip.isSelected(user) && !trip.isBought(user)) {
                 selectedTripList.add(trip);
             }
         }
         return selectedTripList;
+    }
+
+    public static List<Trip> getBoughtTripList(User user) {
+        List<Trip> boughtTripList = new ArrayList<>();
+        for (Trip trip : tripList) {
+            if (trip.isBought(user)) {
+                boughtTripList.add(trip);
+            }
+        }
+        return boughtTripList;
+    }
+
+    public static List<Trip> getNonBoughtTripList(User user) {
+        List<Trip> nonBoughtTripList = new ArrayList<>();
+        for (Trip trip : tripList) {
+            if (!trip.isBought(user)) {
+                nonBoughtTripList.add(trip);
+            }
+        }
+        return nonBoughtTripList;
     }
 
     public String getDestination() {
@@ -244,13 +260,10 @@ public class Trip implements Parcelable {
         this.price = price;
     }
 
-    public boolean isSelected() {
-        return isSelected;
+    public boolean isSelected(User user) {
+        return user.isSelected(this.get_id());
     }
-
-    public void setSelected(boolean selected) {
-        isSelected = selected;
-    }
+    public boolean isBought(User user) { return user.isBought(this.get_id()); }
 
     public String getDescription() {
         return description;
@@ -292,7 +305,6 @@ public class Trip implements Parcelable {
                 ", arrivalDate=" + arrivalDate +
                 ", departureDate=" + departureDate +
                 ", price=" + price +
-                ", isSelected=" + isSelected +
                 ", description='" + description + '\'' +
                 '}';
     }

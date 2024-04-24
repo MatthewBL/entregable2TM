@@ -1,8 +1,15 @@
 package us.master.entregable2.services;
 
+import android.support.annotation.NonNull;
+
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import us.master.entregable2.entities.FirebaseEntity;
 import us.master.entregable2.entities.Trip;
@@ -31,6 +38,26 @@ public class FirebaseDatabaseService {
         FirebaseDatabaseService.userId = userId;
         FirebaseDatabaseService.getServiceInstance();
         return service;
+    }
+
+    public static void getCurrentUser(final UserCallback callback) {
+        if (userId == null) {
+            callback.onCallback(null);
+        }
+
+        DatabaseReference userRef = mDatabase.getReference("users/" + userId);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                callback.onCallback(user);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // Handle possible errors.
+            }
+        });
     }
 
     public Task<Void> saveUser(User user) {

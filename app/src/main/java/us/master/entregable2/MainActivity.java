@@ -22,15 +22,17 @@ public class MainActivity extends AppCompatActivity {
 
         CardView cardView1 = AddCardView(parentLayout, R.drawable.trips, "Viajes disponibles");
         CardView cardView2 = AddCardView(parentLayout, R.drawable.selectedtrips, "Viajes seleccionados");
+        CardView cardView3 = AddCardView(parentLayout, R.drawable.selectedtrips, "Viajes comprados");
 
         cardView1.setId(R.id.cardView1);
         cardView2.setId(R.id.cardView2);
+        cardView3.setId(R.id.cardView3);
 
         cardView1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, TripList.class);
-                intent.putExtra("displaySelected", false); // Display all trips
+                intent.putExtra("display", "");
                 startActivity(intent);
             }
         });
@@ -39,7 +41,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, TripList.class);
-                intent.putExtra("displaySelected", true); // Display only selected trips
+                intent.putExtra("display", "selected");
+                startActivity(intent);
+            }
+        });
+
+        cardView3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, TripList.class);
+                intent.putExtra("display", "bought");
                 startActivity(intent);
             }
         });

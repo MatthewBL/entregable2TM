@@ -1,16 +1,24 @@
 package us.master.entregable2.entities;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.util.ArrayList;
 import java.util.Date;
 
 public class User {
     private String _id;
     private String email;
     private Date created;
+    private ArrayList<String> selectedTrips;
+    private ArrayList<String> boughtTrips;
 
     public User() {
         this._id = "";
         this.email = "";
         this.created = new Date();
+        this.selectedTrips = new ArrayList<>();
+        this.boughtTrips = new ArrayList<>();
     }
 
     public User(String _id, String email, Date created) {
@@ -41,6 +49,26 @@ public class User {
 
     public void setCreated(Date created) {
         this.created = created;
+    }
+
+    public void selectTrip(String trip) {
+        this.selectedTrips.add(trip);
+    }
+
+    public void deselectTrip(String trip) {
+        this.selectedTrips.remove(trip);
+    }
+
+    public void buyTrip(String trip) {
+        this.boughtTrips.add(trip);
+    }
+
+    public boolean isSelected(String trip) {
+        return this.selectedTrips.contains(trip);
+    }
+
+    public boolean isBought(String trip) {
+        return this.boughtTrips.contains(trip);
     }
 
     @Override

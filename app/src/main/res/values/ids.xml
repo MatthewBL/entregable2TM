@@ -2,4 +2,5 @@
 <resources>
     <item name="cardView1" type="id"/>
     <item name="cardView2" type="id"/>
+    <item name="cardView3" type="id"/>
 </resources>
