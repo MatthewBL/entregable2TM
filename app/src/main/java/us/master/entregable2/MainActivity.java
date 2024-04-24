@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
 
         CardView cardView1 = AddCardView(parentLayout, R.drawable.trips, "Viajes disponibles");
         CardView cardView2 = AddCardView(parentLayout, R.drawable.selectedtrips, "Viajes seleccionados");
-        CardView cardView3 = AddCardView(parentLayout, R.drawable.selectedtrips, "Viajes comprados");
+        CardView cardView3 = AddCardView(parentLayout, R.drawable.boughtTrips, "Viajes comprados");
 
         cardView1.setId(R.id.cardView1);
         cardView2.setId(R.id.cardView2);
