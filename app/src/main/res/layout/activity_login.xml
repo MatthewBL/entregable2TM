@@ -25,6 +25,11 @@
         android:layout_height="150dp"
         android:src="@drawable/logo_acme_travels" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"/>
+
     <ScrollView
         android:id="@+id/login_main_layout"
         android:layout_width="match_parent"
