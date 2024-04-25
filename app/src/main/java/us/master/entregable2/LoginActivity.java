@@ -2,13 +2,12 @@ package us.master.entregable2;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,12 +34,13 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 
 import us.master.entregable2.entities.User;
 import us.master.entregable2.services.FirebaseDatabaseService;
 import us.master.entregable2.services.LocalPreferences;
-//import es.us.lsi.acme.market.services.ApiRestCalls;
 
 public class LoginActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_SIGN_IN = 0x456;
@@ -50,7 +50,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButtonSignup;
     private ProgressBar progressBar;
     private TextInputLayout loginEmail;
-    private AutoCompleteTextView loginEmailEt;
+    private EditText loginEmailEt;
     private TextInputLayout loginPass;
     private EditText loginPassEt;
 
@@ -79,6 +79,11 @@ public class LoginActivity extends AppCompatActivity {
         signinButtonMail.setOnClickListener(v -> attemptLoginEmail());
 
         signinButtonGoogle.setOnClickListener(v -> attemptLoginGoogle(gso));
+
+        loginButtonSignup.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void attemptLoginEmail() {
@@ -114,7 +119,7 @@ public class LoginActivity extends AppCompatActivity {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 assert account != null;
                 AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
-                if (mAuth == null) {
+                if (mAuth != null) {
                     mAuth.signInWithCredential(credential).addOnCompleteListener(this, task1 -> {
                         if (task1.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
@@ -168,16 +173,18 @@ public class LoginActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void checkUserDatabaseLogin(FirebaseUser user) {
+    private void checkUserDatabaseLogin(FirebaseUser firebaseUser) {
         FirebaseDatabaseService.getServiceInstance().getUser().addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 User user = dataSnapshot.getValue(User.class);
                 if (user == null) {
                     user = new User();
-                    user.set_id(user.get_id());
-                    user.setEmail(user.getEmail());
-                    user.setCreated(Calendar.getInstance().getTime());
+                    user.set_id(firebaseUser.getUid());
+                    user.setEmail(firebaseUser.getEmail());
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    String dateString = sdf.format(Calendar.getInstance().getTime());
+                    user.setCreated(dateString);
                     FirebaseDatabaseService.getServiceInstance().saveUser(user);
                 }
                 LocalPreferences.getLocalPreferencesInstance().saveLocalUserInformation(LoginActivity.this, user);

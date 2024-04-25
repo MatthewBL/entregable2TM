@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
@@ -37,6 +38,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import us.master.entregable2.entities.Trip;
+import us.master.entregable2.entities.TripFunctionalities;
 import us.master.entregable2.entities.User;
 import us.master.entregable2.services.FirebaseDatabaseService;
 import us.master.entregable2.services.PropertiesManager;
@@ -49,7 +51,7 @@ public class TripList extends AppCompatActivity {
     Location userLocation;
     private RecyclerView recyclerView;
     private TripAdapter adapter;
-    private List<Trip> tripList;
+    private List<Trip> tripList = new ArrayList<>();
     private TextView filtrarTextView;
     private ImageView filterIcon;
     private Switch columnasSwitch;
@@ -86,27 +88,9 @@ public class TripList extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
 
-        FirebaseDatabaseService.getCurrentUser(new UserCallback() {
-            @Override
-            public void onCallback(User user) {
-                if (user != null) {
-                    if (display != null && display.equals("selected")) {
-                        tripList = Trip.getSelectedTripList(user);
-                    } else if (display != null && display.equals("bought")) {
-                        tripList = Trip.getBoughtTripList(user);
-                    } else {
-                        tripList = Trip.getNonBoughtTripList(user);
-                    }
-                } else {
-                    // Handle the case where there is no logged in user
-                }
-            }
-        });
+        updateTripList(display);
 
         columnasSwitch = findViewById(R.id.columnasSwitch);
-
-        adapter = new TripAdapter(tripList, display, columnasSwitch.isChecked());
-        recyclerView.setAdapter(adapter);
 
         filtrarTextView = findViewById(R.id.filtrarTextView);
         filterIcon = findViewById(R.id.filterIcon);
@@ -182,7 +166,7 @@ public class TripList extends AppCompatActivity {
                     if (!"-".equals(startDate)) {
                         try {
                             LocalDate start = LocalDate.parse(startDate, formatter);
-                            return !trip.getDepartureDate().isBefore(start);
+                            return !TripFunctionalities.obtainDepartureDateType(trip).isBefore(start);
                         } catch (DateTimeParseException e) {
                             e.printStackTrace();
                         }
@@ -193,7 +177,7 @@ public class TripList extends AppCompatActivity {
                     if (!"-".equals(endDate)) {
                         try {
                             LocalDate end = LocalDate.parse(endDate, formatter);
-                            return !trip.getArrivalDate().isAfter(end);
+                            return !TripFunctionalities.obtainArrivalDateType(trip).isAfter(end);
                         } catch (DateTimeParseException e) {
                             e.printStackTrace();
                         }
@@ -206,7 +190,7 @@ public class TripList extends AppCompatActivity {
                     if (airportCheckBox) {
                         Properties properties = PropertiesManager.loadProperties(this);
                         String apiKey = properties.getProperty("google_maps_key");
-                        LatLng startPointLatLng = trip.getStartPointLatLng(apiKey);
+                        LatLng startPointLatLng = TripFunctionalities.obtainStartPointLatLng(trip, apiKey);
                         return getDistanceInKm(userLocation, startPointLatLng) <= 30;
                     } else {
                         return true;
@@ -261,5 +245,27 @@ public class TripList extends AppCompatActivity {
 
     public void stopService() {
         LocationServices.getFusedLocationProviderClient(this).removeLocationUpdates(locationCallback);
+    }
+
+    public void updateTripList(String display) {
+        FirebaseDatabaseService.getCurrentUser(new UserCallback() {
+            @Override
+            public void onCallback(User user) {
+                if (user != null) {
+                    if (display != null && display.equals("selected")) {
+                        tripList = TripFunctionalities.obtainSelectedTripList(user);
+                    } else if (display != null && display.equals("bought")) {
+                        tripList = TripFunctionalities.obtainBoughtTripList(user);
+                    } else {
+                        tripList = TripFunctionalities.obtainNonBoughtTripList(user);
+                    }
+
+                    adapter = new TripAdapter(tripList, display, columnasSwitch.isChecked());
+                    recyclerView.setAdapter(adapter);
+                } else {
+                    Log.e("TripList", "No user found");
+                }
+            }
+        });
     }
 }

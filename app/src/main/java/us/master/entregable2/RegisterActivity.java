@@ -13,7 +13,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     public static final String EMAIL_PARAM = "EMAIL_PARAM";
 
-    private AutoCompleteTextView login_email_et;
+    private EditText login_email_et;
     private EditText login_pass_et;
     private EditText login_pass_confirmation_et;
 

@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <AutoCompleteTextView
+        <EditText
             android:id="@+id/login_email_et"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

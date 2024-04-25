@@ -1,27 +1,24 @@
 package us.master.entregable2.entities;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class User {
     private String _id;
     private String email;
-    private Date created;
-    private ArrayList<String> selectedTrips;
-    private ArrayList<String> boughtTrips;
+    private String created;
+    private ArrayList<String> selectedTrips = new ArrayList<>();
+    private ArrayList<String> boughtTrips = new ArrayList<>();
 
     public User() {
         this._id = "";
         this.email = "";
-        this.created = new Date();
+        this.created = "";
         this.selectedTrips = new ArrayList<>();
         this.boughtTrips = new ArrayList<>();
     }
 
-    public User(String _id, String email, Date created) {
+    public User(String _id, String email, String created) {
         this._id = _id;
         this.email = email;
         this.created = created;
@@ -43,12 +40,28 @@ public class User {
         this.email = email;
     }
 
-    public Date getCreated() {
+    public String getCreated() {
         return created;
     }
 
-    public void setCreated(Date created) {
+    public void setCreated(String created) {
         this.created = created;
+    }
+
+    public ArrayList<String> getSelectedTrips() {
+        return selectedTrips;
+    }
+
+    public void setSelectedTrips(ArrayList<String> selectedTrips) {
+        this.selectedTrips = selectedTrips;
+    }
+
+    public ArrayList<String> getBoughtTrips() {
+        return boughtTrips;
+    }
+
+    public void setBoughtTrips(ArrayList<String> boughtTrips) {
+        this.boughtTrips = boughtTrips;
     }
 
     public void selectTrip(String trip) {
@@ -61,14 +74,6 @@ public class User {
 
     public void buyTrip(String trip) {
         this.boughtTrips.add(trip);
-    }
-
-    public boolean isSelected(String trip) {
-        return this.selectedTrips.contains(trip);
-    }
-
-    public boolean isBought(String trip) {
-        return this.boughtTrips.contains(trip);
     }
 
     @Override

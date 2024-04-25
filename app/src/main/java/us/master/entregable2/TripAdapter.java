@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 
 import us.master.entregable2.entities.Trip;
+import us.master.entregable2.entities.TripFunctionalities;
 import us.master.entregable2.entities.User;
 import us.master.entregable2.services.FirebaseDatabaseService;
 import us.master.entregable2.services.UserCallback;
@@ -52,8 +53,8 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
         Trip trip = tripList.get(position);
         holder.destinationTextView.setText(trip.getDestination());
 
-        Date departureDate = Date.from(trip.getDepartureDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date arrivalDate = Date.from(trip.getArrivalDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date departureDate = Date.from(TripFunctionalities.obtainDepartureDateType(trip).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date arrivalDate = Date.from(TripFunctionalities.obtainArrivalDateType(trip).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         holder.departureDateTextViewRight.setText(dateFormat.format(departureDate));
@@ -70,7 +71,7 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
             public void onCallback(User user) {
                 if (user != null) {
                     // Set the star image based on whether the trip is selected or not
-                    if (user.isSelected(trip.get_id())) {
+                    if (TripFunctionalities.isSelected(trip, user)) {
                         holder.imageViewRight.setImageResource(android.R.drawable.star_big_on);
                     } else {
                         holder.imageViewRight.setImageResource(android.R.drawable.star_big_off);
@@ -78,6 +79,7 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
                 } else {
                     // Handle the case where there is no logged in user
                 }
+                holder.rootView.setVisibility(View.VISIBLE);
             }
         });
 
@@ -90,7 +92,7 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
                     public void onCallback(User user) {
                         if (user != null) {
                             // Toggle the isSelected value of the trip
-                            if (user.isSelected(trip.get_id())) {
+                            if (TripFunctionalities.isSelected(trip, user)) {
                                 user.deselectTrip(trip.get_id());
                             } else {
                                 user.selectTrip(trip.get_id());
@@ -102,12 +104,12 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
                             int currentPosition = holder.getAdapterPosition();
 
                             // If the list is only displaying selected trips and the trip is unselected, remove it from the list
-                            if (!user.isSelected(trip.get_id()) && display.equals("selected") && currentPosition != RecyclerView.NO_POSITION) {
+                            if (!TripFunctionalities.isSelected(trip, user) && display.equals("selected") && currentPosition != RecyclerView.NO_POSITION) {
                                 tripList.remove(currentPosition);
                                 notifyDataSetChanged();
                             } else {
                                 // Update the star image based on the new isSelected value
-                                if (user.isSelected(trip.get_id())) {
+                                if (TripFunctionalities.isSelected(trip, user)) {
                                     holder.imageViewRight.setImageResource(android.R.drawable.star_big_on);
                                 } else {
                                     holder.imageViewRight.setImageResource(android.R.drawable.star_big_off);
@@ -139,7 +141,7 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
                             int currentPosition = holder.getAdapterPosition();
 
                             // If the list is not selecting bought trips and the trip is unselected, remove it from the list
-                            if (user.isBought(trip.get_id()) && !display.equals("bought") && currentPosition != RecyclerView.NO_POSITION) {
+                            if (TripFunctionalities.isBought(trip, user) && !display.equals("bought") && currentPosition != RecyclerView.NO_POSITION) {
                                 tripList.remove(currentPosition);
                                 notifyDataSetChanged();
                             }
@@ -172,6 +174,7 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
     }
 
     public static class TripViewHolder extends RecyclerView.ViewHolder {
+        View rootView;
         private final List<Trip> tripList;
         TextView destinationTextView;
         TextView priceTextViewRight;
@@ -184,6 +187,7 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
         public TripViewHolder(@NonNull View itemView, List<Trip> tripList) {
             super(itemView);
             this.tripList = tripList;
+            rootView = itemView;
             destinationTextView = itemView.findViewById(R.id.destinationTextView);
             priceTextViewRight = itemView.findViewById(R.id.priceTextViewRight);
             departureDateTextViewRight = itemView.findViewById(R.id.departureDateTextViewRight);

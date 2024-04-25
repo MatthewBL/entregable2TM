@@ -35,6 +35,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import us.master.entregable2.entities.Trip;
+import us.master.entregable2.entities.TripFunctionalities;
 import us.master.entregable2.entities.User;
 import us.master.entregable2.services.FirebaseDatabaseService;
 import us.master.entregable2.services.PropertiesManager;
@@ -89,8 +90,8 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
         priceTextView.setText(String.format(Locale.getDefault(), "%.2f €", trip.getPrice()));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd 'de' MMMM yyyy", Locale.getDefault());
-        departureDateTextView.setText(trip.getDepartureDate().format(formatter));
-        arrivalDateTextView.setText(trip.getArrivalDate().format(formatter));
+        departureDateTextView.setText(trip.getDepartureDate());
+        arrivalDateTextView.setText(trip.getArrivalDate());
 
         startPointTextView.setText(trip.getStartPoint());
 
@@ -99,7 +100,7 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
             public void onCallback(User user) {
                 if (user != null) {
                     // Set the star image based on whether the trip is selected or not
-                    if (user.isSelected(trip.get_id())) {
+                    if (TripFunctionalities.isSelected(trip, user)) {
                         isSelectedImageView.setImageResource(android.R.drawable.btn_star_big_on);
                         isSelectedImageView.setTag("android.R.drawable.star_big_on");
                     } else {
@@ -135,7 +136,7 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
 
         Properties properties = PropertiesManager.loadProperties(this);
         String apiKey = properties.getProperty("google_maps_key");
-        LatLng location = trip.getDestinationLatLng(apiKey);
+        LatLng location = TripFunctionalities.obtainDestinationLatLng(trip, apiKey);
         mMap.addMarker(new MarkerOptions().title(trip.getDestination()).position(location));
         mMap.animateCamera(CameraUpdateFactory.newLatLng(location));
     }

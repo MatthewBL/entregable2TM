@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import us.master.entregable2.entities.Trip;
+import us.master.entregable2.entities.TripFunctionalities;
 
 @RunWith(AndroidJUnit4.class)
 public class MainActivityTest {
@@ -41,7 +42,7 @@ public class MainActivityTest {
 
     @Test
     public void ensureCardViewClickOpensCorrectActivity() throws Exception {
-        Trip.generateTestTripList(123456789);
+        TripFunctionalities.generateTestTripList(123456789);
 
         // Click on the first CardView and check if the correct activity is opened
         Espresso.onView(ViewMatchers.withId(R.id.cardView1))
@@ -64,7 +65,7 @@ public class MainActivityTest {
     }
     @Test
     public void testSelectTrip() throws Exception {
-        Trip.generateTestTripList(123456789);
+        TripFunctionalities.generateTestTripList(123456789);
 
         testSelectedTripStage1();
 
@@ -74,7 +75,7 @@ public class MainActivityTest {
     }
     @Test
     public void testSelectTripColumns() throws Exception {
-        Trip.generateTestTripList(123456789);
+        TripFunctionalities.generateTestTripList(123456789);
 
         testSelectedTripStage1();
 
@@ -153,7 +154,7 @@ public class MainActivityTest {
     }
     @Test
     public void testTripDetails() {
-        Trip.generateTestTripList(123456789);
+        TripFunctionalities.generateTestTripList(123456789);
 
         Espresso.onView(ViewMatchers.withId(R.id.cardView1))
                 .perform(ViewActions.click());
@@ -167,7 +168,7 @@ public class MainActivityTest {
 
     @Test
     public void testTripDetailsColumn() {
-        Trip.generateTestTripList(123456789);
+        TripFunctionalities.generateTestTripList(123456789);
 
         Espresso.onView(ViewMatchers.withId(R.id.cardView1))
                 .perform(ViewActions.click());
