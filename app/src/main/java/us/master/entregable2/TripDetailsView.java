@@ -137,7 +137,8 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
 
         String apiKey = getResources().getString(R.string.google_maps_key);
 
-        TripFunctionalities.obtainDestinationLatLng(trip, apiKey, new TripFunctionalities.LatLngCallback() {
+        String destination = trip.getDestination() + ", " + trip.getDestinationCountry();
+        TripFunctionalities.obtainLocationLatLng(destination, apiKey, new TripFunctionalities.LatLngCallback() {
             @Override
             public void onSuccess(LatLng location) {
                 mMap.addMarker(new MarkerOptions().title("Trip Destination").position(location));

@@ -29,6 +29,7 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
     private List<Trip> tripList;
     private String display = "";
     private boolean isTwoColumnLayout;
+    private TripViewHolder tripViewHolder;
 
     public TripAdapter(List<Trip> tripList, String display, boolean isTwoColumnLayout) {
         this.tripList = tripList;
@@ -45,7 +46,8 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
         } else {
             view = LayoutInflater.from(parent.getContext()).inflate(R.layout.trip_item, parent, false);
         }
-        return new TripViewHolder(view, tripList);
+        tripViewHolder = new TripViewHolder(view, tripList);
+        return tripViewHolder;
     }
 
     @Override
@@ -175,7 +177,7 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
 
     public static class TripViewHolder extends RecyclerView.ViewHolder {
         View rootView;
-        private final List<Trip> tripList;
+        private List<Trip> tripList;
         TextView destinationTextView;
         TextView priceTextViewRight;
         TextView departureDateTextViewRight;
@@ -211,6 +213,10 @@ public class TripAdapter extends RecyclerView.Adapter<TripAdapter.TripViewHolder
                     }
                 }
             });
+        }
+
+        public void updateTripList(List<Trip> tripList) {
+            this.tripList = tripList;
         }
     }
 

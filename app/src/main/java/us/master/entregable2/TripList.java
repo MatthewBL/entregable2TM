@@ -27,6 +27,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.time.LocalDate;
@@ -34,9 +36,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -56,6 +58,7 @@ public class TripList extends AppCompatActivity {
     private RecyclerView recyclerView;
     private TripAdapter adapter;
     private List<Trip> tripList = new ArrayList<>();
+    private List<Trip> filteredTripList = new ArrayList<>();
     private TextView filtrarTextView;
     private ImageView filterIcon;
     private Switch columnasSwitch;
@@ -151,8 +154,7 @@ public class TripList extends AppCompatActivity {
                     recyclerView.setLayoutManager(new GridLayoutManager(TripList.this, 1));
                 }
                 columnLayout = isChecked;
-                adapter = new TripAdapter(tripList, display, isChecked);
-                applyFilters();
+                adapter = new TripAdapter(filteredTripList, display, isChecked);
                 recyclerView.setAdapter(adapter);
             }
         });
@@ -171,68 +173,81 @@ public class TripList extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.GONE);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.getDefault());
+        new Thread(() -> {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.getDefault());
 
-        // Define the needed variables for the airport distance filter before the stream
-        Properties properties = PropertiesManager.loadProperties(this);
-        String apiKey = getResources().getString(R.string.google_maps_key);
+            // Define the needed variables for the airport distance filter before the stream
+            Properties properties = PropertiesManager.loadProperties(this);
+            String apiKey = getResources().getString(R.string.google_maps_key);
 
-        // Filter the trips based on the non-asynchronous conditions
-        List<Trip> filteredTripList = tripList.stream()
-                .filter(trip -> {
-                    if (!"-".equals(startDate)) {
-                        try {
-                            LocalDate start = LocalDate.parse(startDate, formatter);
-                            return !TripFunctionalities.obtainDepartureDateType(trip).isBefore(start);
-                        } catch (DateTimeParseException e) {
-                            e.printStackTrace();
+            // Filter the trips based on the non-asynchronous conditions
+            filteredTripList = tripList.stream()
+                    .filter(trip -> {
+                        if (!"-".equals(startDate)) {
+                            try {
+                                LocalDate start = LocalDate.parse(startDate, formatter);
+                                return !TripFunctionalities.obtainDepartureDateType(trip).isBefore(start);
+                            } catch (DateTimeParseException e) {
+                                e.printStackTrace();
+                            }
                         }
-                    }
-                    return true;
-                })
-                .filter(trip -> {
-                    if (!"-".equals(endDate)) {
-                        try {
-                            LocalDate end = LocalDate.parse(endDate, formatter);
-                            return !TripFunctionalities.obtainArrivalDateType(trip).isAfter(end);
-                        } catch (DateTimeParseException e) {
-                            e.printStackTrace();
+                        return true;
+                    })
+                    .filter(trip -> {
+                        if (!"-".equals(endDate)) {
+                            try {
+                                LocalDate end = LocalDate.parse(endDate, formatter);
+                                return !TripFunctionalities.obtainArrivalDateType(trip).isAfter(end);
+                            } catch (DateTimeParseException e) {
+                                e.printStackTrace();
+                            }
                         }
+                        return true;
+                    })
+                    .filter(trip -> trip.getPrice() >= minPrice)
+                    .filter(trip -> trip.getPrice() <= maxPrice)
+                    .collect(Collectors.toList());
+
+            if (airportCheckBox) {
+                TripFunctionalities.obtainLocationsLatLng(filteredTripList, apiKey, new TripFunctionalities.LatLngMapCallback() {
+                    @Override
+                    public void onSuccess(Map<Trip, LatLng> latLngMap) {
+                        List<Trip> finalTrips = new ArrayList<>(filteredTripList);
+                        for (Map.Entry<Trip, LatLng> entry : latLngMap.entrySet()) {
+                            LatLng startPoint = entry.getValue();
+                            LatLng userLatLng = new LatLng(userLocation.getLatitude(), userLocation.getLongitude());
+                            float distance = TripFunctionalities.getDistanceInKm(userLatLng, startPoint);
+                            if (distance >= 30) {
+                                finalTrips.remove(entry.getKey());
+                            }
+                            else {
+
+                            }
+                        }
+                        runOnUiThread(() -> {
+                            filteredTripList = finalTrips;
+                            adapter.updateList(filteredTripList);
+                            progressBar.setVisibility(View.GONE);
+                            recyclerView.setVisibility(View.VISIBLE);
+                        });
                     }
-                    return true;
-                })
-                .filter(trip -> trip.getPrice() >= minPrice)
-                .filter(trip -> trip.getPrice() <= maxPrice)
-                .collect(Collectors.toList());
 
-        // Build a dictionary of CompletableFuture of LatLng, one for each trip in filteredTripList
-        Map<Trip, CompletableFuture<LatLng>> futures = new HashMap<>();
-        for (Trip trip : filteredTripList) {
-            futures.put(trip, CompletableFuture.supplyAsync(() -> TripFunctionalities.obtainStartPointLatLng(trip, apiKey)));
-        }
-
-        // Wait for the CompletableFuture to finish. Then filter out those that aren't within 30 kms from the user
-        CompletableFuture.allOf(futures.values().toArray(new CompletableFuture[0])).join();
-        List<Trip> finalTripList = new ArrayList<>();
-        for (Map.Entry<Trip, CompletableFuture<LatLng>> entry : futures.entrySet()) {
-            LatLng startPointLatLng = entry.getValue().join();
-            if (airportCheckBox && getDistanceInKm(userLocation, startPointLatLng) <= 30) {
-                finalTripList.add(entry.getKey());
+                    @Override
+                    public void onFailure(Throwable t) {
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            recyclerView.setVisibility(View.VISIBLE);
+                        });
+                    }
+                });
+            } else {
+                runOnUiThread(() -> {
+                    adapter.updateList(filteredTripList);
+                    progressBar.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.VISIBLE);
+                });
             }
-        }
-
-        // Update the adapter and remove the ProgressBar
-        runOnUiThread(() -> {
-            adapter.updateList(finalTripList);
-            progressBar.setVisibility(View.GONE);
-            recyclerView.setVisibility(View.VISIBLE);
-        });
-    }
-
-    private float getDistanceInKm(Location userLocation, LatLng startPoint) {
-        float[] results = new float[1];
-        Location.distanceBetween(userLocation.getLatitude(), userLocation.getLongitude(), startPoint.latitude, startPoint.longitude, results);
-        return results[0] / 1000; // convert meters to kilometers
+        }).start();
     }
 
     @Override
@@ -290,7 +305,7 @@ public class TripList extends AppCompatActivity {
                     } else {
                         tripList = TripFunctionalities.obtainNonBoughtTripList(user);
                     }
-
+                    filteredTripList = tripList;
                     adapter = new TripAdapter(tripList, display, columnasSwitch.isChecked());
                     recyclerView.setAdapter(adapter);
                 } else {

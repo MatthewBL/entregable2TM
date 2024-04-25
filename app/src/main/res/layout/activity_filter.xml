@@ -111,7 +111,7 @@
         android:id="@+id/airportCheckBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Aeropuertos de salida a de mí 30kms" />
+        android:text="Aeropuertos de salida a 30 kms de mí" />
 
     <LinearLayout
         android:layout_width="match_parent"

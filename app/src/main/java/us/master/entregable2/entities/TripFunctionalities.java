@@ -1,5 +1,7 @@
 package us.master.entregable2.entities;
 
+import android.location.Location;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -9,7 +11,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.text.Normalizer;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -189,16 +194,14 @@ public class TripFunctionalities {
         void onFailure(Throwable t);
     }
 
-    public static void obtainDestinationLatLng(Trip trip, String google_maps_key, final LatLngCallback callback) {
-        String destination = trip.getDestination() + ", " + trip.getDestinationCountry();
-
+    public static void obtainLocationLatLng(String location, String google_maps_key, final LatLngCallback callback) {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://maps.googleapis.com/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         GeocodingAPI geocodingAPI = retrofit.create(GeocodingAPI.class);
-        Call<JsonObject> call = geocodingAPI.getLatLng(destination, google_maps_key);
+        Call<JsonObject> call = geocodingAPI.getLatLng(location, google_maps_key);
 
         call.enqueue(new Callback<JsonObject>() {
             @Override
@@ -223,7 +226,44 @@ public class TripFunctionalities {
         });
     }
 
-    public static LatLng obtainStartPointLatLng(Trip trip, String google_maps_key) {
-        return null;
+    public interface LatLngMapCallback {
+        void onSuccess(Map<Trip, LatLng> latLngMap);
+        void onFailure(Throwable t);
+    }
+
+    public static void obtainLocationsLatLng(List<Trip> locations, String google_maps_key, final LatLngMapCallback callback) {
+        Map<Trip, LatLng> latLngMap = new HashMap<>();
+        CountDownLatch latch = new CountDownLatch(locations.size());
+
+        for (Trip trip : locations) {
+            obtainLocationLatLng(trip.getStartPoint() + ", España", google_maps_key, new LatLngCallback() {
+                @Override
+                public void onSuccess(LatLng latLng) {
+                    latLngMap.put(trip, latLng);
+                    latch.countDown();
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    callback.onFailure(t);
+                }
+            });
+        }
+
+        new Thread(() -> {
+            try {
+                latch.await();
+                callback.onSuccess(latLngMap);
+            } catch (InterruptedException e) {
+                callback.onFailure(e);
+            }
+        }).start();
+    }
+
+
+    public static float getDistanceInKm(LatLng location1, LatLng location2) {
+        float[] results = new float[1];
+        Location.distanceBetween(location1.latitude, location1.longitude, location2.latitude, location2.longitude, results);
+        return results[0] / 1000; // convert meters to kilometers
     }
 }

@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -124,6 +125,8 @@ public class FilterActivity extends AppCompatActivity {
                 resultIntent.putExtra("maxPrice", maxPriceSeekBar.getProgress());
                 resultIntent.putExtra("airportCheckBox", airportCheckBox.isChecked());
                 setResult(RESULT_OK, resultIntent);
+                LinearLayout rootLayout = findViewById(R.id.filterActivityRootLayout);
+                rootLayout.setVisibility(View.GONE);
                 finish();
             }
         });
