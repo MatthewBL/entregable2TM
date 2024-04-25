@@ -5,26 +5,33 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.text.Normalizer;
+import java.util.regex.Pattern;
+
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import us.master.entregable2.services.FirebaseDatabaseService;
-import us.master.entregable2.services.GoogleMapsService;
+import us.master.entregable2.services.GeocodingAPI;
 
 public class TripFunctionalities {
     private static List<Trip> tripList = new ArrayList<>();
 
     public static void generateTripData() {
         String[] destinations = {"París", "Londres", "Nueva York", "Tokio", "Sídney", "Roma", "Berlín", "Madrid", "Pekín", "Río de Janeiro"};
+        String[] destinationCountries = {"Francia", "Inglaterra", "Estados Unidos", "Japón", "Australia", "Italia", "Alemania", "España", "China", "Brasil"};
         String[] startPoints = {"Madrid", "Barcelona", "Valencia", "Sevilla", "Bilbao", "Málaga", "Oviedo", "Santander", "Zaragoza", "Murcia"};
         String[] descriptions = {"Viaje a la ciudad del amor", "Viaje a la ciudad de la lluvia", "Viaje a la ciudad de los rascacielos", "Viaje a la ciudad del sushi", "Viaje a la ciudad de los koalas", "Viaje a la ciudad de los gladiadores", "Viaje a la ciudad de la cerveza", "Viaje a la ciudad del bocadillo de calamares", "Viaje a la ciudad de la Gran Muralla", "Viaje a la ciudad de la samba"};
         String[] images = {"https://viajes.nationalgeographic.com.es/medio/2023/01/31/2023_7fffe24b_230131085752_800x800.jpg",
@@ -44,6 +51,7 @@ public class TripFunctionalities {
         for (int i = 0; i < 20; i++) {
             int destinationIndex = random.nextInt(destinations.length);
             String destination = destinations[destinationIndex];
+            String destinationCountry = destinationCountries[destinationIndex];
             String startPoint = startPoints[random.nextInt(startPoints.length)];
             LocalDate departureDateType = LocalDate.now().plusDays(random.nextInt(60));
             LocalDate arrivalDateType = departureDateType.plusDays(10 + random.nextInt(10));
@@ -56,7 +64,7 @@ public class TripFunctionalities {
             String subreddit = subreddits[destinationIndex];
             String articleId = articleIds[destinationIndex];
 
-            Trip trip = new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image, subreddit, articleId);
+            Trip trip = new Trip(String.valueOf(i), destination, destinationCountry, startPoint, arrivalDate, departureDate, price, isSelected, description, image, subreddit, articleId);
             DatabaseReference tripsRef = FirebaseDatabaseService.getServiceInstance().getTrips();
             tripsRef.push().setValue(trip);
         }
@@ -68,6 +76,7 @@ public class TripFunctionalities {
         FirebaseDatabaseService.getServiceInstance().clearTrips();
 
         String[] destinations = {"París", "Londres", "Nueva York", "Tokio", "Sídney", "Roma", "Berlín", "Madrid", "Pekín", "Río de Janeiro"};
+        String[] destinationCountries = {"Francia", "Inglaterra", "Estados Unidos", "Japón", "Australia", "Italia", "Alemania", "España", "China", "Brasil"};
         String[] startPoints = {"Madrid", "Barcelona", "Valencia", "Sevilla", "Bilbao", "Málaga", "Oviedo", "Santander", "Zaragoza", "Murcia"};
         String[] descriptions = {"Viaje a la ciudad del amor", "Viaje a la ciudad de la lluvia", "Viaje a la ciudad de los rascacielos", "Viaje a la ciudad del sushi", "Viaje a la ciudad de los koalas", "Viaje a la ciudad de los gladiadores", "Viaje a la ciudad de la cerveza", "Viaje a la ciudad del bocadillo de calamares", "Viaje a la ciudad de la Gran Muralla", "Viaje a la ciudad de la samba"};
         String[] images = {"https://viajes.nationalgeographic.com.es/medio/2023/01/31/2023_7fffe24b_230131085752_800x800.jpg",
@@ -87,6 +96,7 @@ public class TripFunctionalities {
         for (int i = 0; i < 20; i++) {
             int destinationIndex = random.nextInt(destinations.length);
             String destination = destinations[destinationIndex];
+            String destinationCountry = destinationCountries[destinationIndex];
             String startPoint = startPoints[random.nextInt(startPoints.length)];
             LocalDate departureDateType = LocalDate.now().plusDays(random.nextInt(60));
             LocalDate arrivalDateType = departureDateType.plusDays(10 + random.nextInt(10));
@@ -99,7 +109,7 @@ public class TripFunctionalities {
             String subreddit = subreddits[destinationIndex];
             String articleId = articleIds[destinationIndex];
 
-            Trip trip = new Trip(String.valueOf(i), destination, startPoint, arrivalDate, departureDate, price, isSelected, description, image, subreddit, articleId);
+            Trip trip = new Trip(String.valueOf(i), destination, destinationCountry, startPoint, arrivalDate, departureDate, price, isSelected, description, image, subreddit, articleId);
             DatabaseReference tripsRef = FirebaseDatabaseService.getServiceInstance().getTrips();
             tripsRef.push().setValue(trip);
         }
@@ -174,12 +184,46 @@ public class TripFunctionalities {
         return user.getBoughtTrips().contains(trip.get_id());
     }
 
-    public static LatLng obtainDestinationLatLng(Trip trip, String google_maps_key) {
-        return null; //GoogleMapsService.getLatLngFromCityName(trip.getDestination(), google_maps_key);
+    public interface LatLngCallback {
+        void onSuccess(LatLng latLng);
+        void onFailure(Throwable t);
+    }
+
+    public static void obtainDestinationLatLng(Trip trip, String google_maps_key, final LatLngCallback callback) {
+        String destination = trip.getDestination() + ", " + trip.getDestinationCountry();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://maps.googleapis.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        GeocodingAPI geocodingAPI = retrofit.create(GeocodingAPI.class);
+        Call<JsonObject> call = geocodingAPI.getLatLng(destination, google_maps_key);
+
+        call.enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful()) {
+                    JsonObject jsonObject = response.body();
+                    JsonElement results = jsonObject.get("results");
+                    if (!results.getAsJsonArray().isEmpty()) {
+                        JsonObject location = results.getAsJsonArray().get(0).getAsJsonObject().get("geometry").getAsJsonObject().get("location").getAsJsonObject();
+                        double lat = location.get("lat").getAsDouble();
+                        double lng = location.get("lng").getAsDouble();
+                        LatLng latLng = new LatLng(lat, lng);
+                        callback.onSuccess(latLng);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                callback.onFailure(t);
+            }
+        });
     }
 
     public static LatLng obtainStartPointLatLng(Trip trip, String google_maps_key) {
-        CompletableFuture<LatLng> future = GoogleMapsService.getLatLngFromCityName(trip.getStartPoint(), google_maps_key);
-        return future.join();
+        return null;
     }
 }

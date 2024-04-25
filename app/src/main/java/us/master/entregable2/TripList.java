@@ -175,7 +175,7 @@ public class TripList extends AppCompatActivity {
 
         // Define the needed variables for the airport distance filter before the stream
         Properties properties = PropertiesManager.loadProperties(this);
-        String apiKey = properties.getProperty("googleMapsApiKey");
+        String apiKey = getResources().getString(R.string.google_maps_key);
 
         // Filter the trips based on the non-asynchronous conditions
         List<Trip> filteredTripList = tripList.stream()

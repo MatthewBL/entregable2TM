@@ -67,8 +67,8 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        redditLogin();
-        redditGetThread(trip.getSubreddit(), trip.getArticleId(), 3, 1);
+//        redditLogin();
+//        redditGetThread(trip.getSubreddit(), trip.getArticleId(), 3, 1);
 
         TextView destinationTextView = findViewById(R.id.textView5);
         TextView priceTextView = findViewById(R.id.priceValue);
@@ -135,9 +135,20 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        LatLng location = new LatLng(40, 0);
-        mMap.addMarker(new MarkerOptions().title("Trip Destination").position(location));
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(location));
+        String apiKey = getResources().getString(R.string.google_maps_key);
+
+        TripFunctionalities.obtainDestinationLatLng(trip, apiKey, new TripFunctionalities.LatLngCallback() {
+            @Override
+            public void onSuccess(LatLng location) {
+                mMap.addMarker(new MarkerOptions().title("Trip Destination").position(location));
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(location));
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                // Handle failure scenario
+            }
+        });
     }
 
     private void redditLogin() {

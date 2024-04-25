@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 public class Trip implements Parcelable {
     private String _id;
     private String destination;
+    private String destinationCountry;
     private String startPoint;
     private String arrivalDate;
     private String departureDate;
@@ -20,6 +21,7 @@ public class Trip implements Parcelable {
     public Trip() {
         this._id = "";
         this.destination = "";
+        this.destinationCountry = "";
         this.startPoint = "";
         this.arrivalDate = "";
         this.departureDate = "";
@@ -33,6 +35,7 @@ public class Trip implements Parcelable {
     protected Trip(Parcel in) {
         _id = in.readString();
         destination = in.readString();
+        destinationCountry = in.readString();
         startPoint = in.readString();
         price = in.readDouble();
         description = in.readString();
@@ -47,6 +50,7 @@ public class Trip implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(_id);
         dest.writeString(destination);
+        dest.writeString(destinationCountry);
         dest.writeString(startPoint);
         dest.writeDouble(price);
         dest.writeString(description);
@@ -74,9 +78,10 @@ public class Trip implements Parcelable {
         }
     };
 
-    public Trip(String _id, String destination, String startPoint, String arrivalDate, String departureDate, double price, boolean isSelected, String description, String image, String subreddit, String articleId) {
+    public Trip(String _id, String destination, String destinationCountry, String startPoint, String arrivalDate, String departureDate, double price, boolean isSelected, String description, String image, String subreddit, String articleId) {
         this._id = _id;
         this.destination = destination;
+        this.destinationCountry = destinationCountry;
         this.startPoint = startPoint;
         this.arrivalDate = arrivalDate;
         this.departureDate = departureDate;
@@ -97,6 +102,14 @@ public class Trip implements Parcelable {
 
     public void setDestination(String destination) {
         this.destination = destination;
+    }
+
+    public String getDestinationCountry() {
+        return destinationCountry;
+    }
+
+    public void setDestinationCountry(String destinationCountry) {
+        this.destinationCountry = destinationCountry;
     }
 
     public String getStartPoint() {
