@@ -62,14 +62,12 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <androidx.appcompat.widget.AppCompatButton
+    <Button
         android:id="@+id/signin_button_mail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:backgroundTint="@color/blue_button"
         android:text="@string/action_sign_up"
-        android:textAllCaps="false"
-        android:textColor="@color/white" />
+        android:textAllCaps="false" />
 
 </LinearLayout>
