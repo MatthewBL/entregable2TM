@@ -3,11 +3,18 @@ package us.master.entregable2;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.Fragment;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.w3c.dom.Text;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -16,8 +23,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.squareup.picasso.Picasso;
 
@@ -26,7 +31,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Properties;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -38,17 +42,22 @@ import us.master.entregable2.entities.Trip;
 import us.master.entregable2.entities.TripFunctionalities;
 import us.master.entregable2.entities.User;
 import us.master.entregable2.services.FirebaseDatabaseService;
-import us.master.entregable2.services.PropertiesManager;
 import us.master.entregable2.services.RedditAuthInterface;
 import us.master.entregable2.services.RedditCommentThreadInterface;
 import us.master.entregable2.services.UserCallback;
 
 public class TripDetailsView extends FragmentActivity implements OnMapReadyCallback {
     private String redditAccessToken;
-    List<String> comments = new ArrayList<>();
+    List<String> redditComments = new ArrayList<>();
     private GoogleMap mMap;
     private Trip trip;
     Retrofit retrofit;
+    LinearLayout redditIcon;
+    TextView comment1TextView;
+    TextView comment2UpperSpaceTextView;
+    TextView comment2TextView;
+    TextView comment3UpperSpaceTextView;
+    TextView comment3TextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +76,7 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-//        redditLogin();
-//        redditGetThread(trip.getSubreddit(), trip.getArticleId(), 3, 1);
+        redditLogin();
 
         TextView destinationTextView = findViewById(R.id.textView5);
         TextView priceTextView = findViewById(R.id.priceValue);
@@ -78,9 +86,12 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
         ImageView isSelectedImageView = findViewById(R.id.selectedValue);
         ImageView imageView = findViewById(R.id.imageView4);
         TextView descriptionTextView = findViewById(R.id.textView4);
-        TextView comment1TextView = findViewById(R.id.comment1);
-        TextView comment2TextView = findViewById(R.id.comment2);
-        TextView comment3TextView = findViewById(R.id.comment3);
+        redditIcon = findViewById(R.id.reddit);
+        comment1TextView = findViewById(R.id.comment1);
+        comment2UpperSpaceTextView = findViewById(R.id.comment2_upper_space);
+        comment2TextView = findViewById(R.id.comment2);
+        comment3UpperSpaceTextView = findViewById(R.id.comment3_upper_space);
+        comment3TextView = findViewById(R.id.comment3);
 
         Picasso.get()
                 .load(trip.getImage())
@@ -116,19 +127,6 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
 
 
         descriptionTextView.setText(trip.getDescription());
-
-        if (comments.size() > 0) {
-            comment1TextView.setVisibility(TextView.VISIBLE);
-            comment1TextView.setText("Opinion: " + comments.get(0));
-        }
-        if (comments.size() > 1) {
-            comment2TextView.setVisibility(TextView.VISIBLE);
-            comment2TextView.setText("Opinion: " + comments.get(1));
-        }
-        if (comments.size() > 2) {
-            comment3TextView.setVisibility(TextView.VISIBLE);
-            comment3TextView.setText("Opinion: " + comments.get(2));
-        }
     }
 
     @Override
@@ -155,11 +153,10 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
     private void redditLogin() {
         RedditAuthInterface redditAuthAPI = retrofit.create(RedditAuthInterface.class);
 
-        Properties properties = PropertiesManager.loadProperties(this);
-        String clientId = properties.getProperty("clientId");
-        String clientSecret = properties.getProperty("clientSecret");
-        String username = properties.getProperty("username");
-        String password = properties.getProperty("password");
+        String clientId = getResources().getString(R.string.redditClientId);
+        String clientSecret = getResources().getString(R.string.redditClientSecret);
+        String username = getResources().getString(R.string.redditUsername);
+        String password = getResources().getString(R.string.redditPassword);
 
         String authHeader = "Basic " + Base64.encodeToString((clientId + ":" + clientSecret).getBytes(), Base64.NO_WRAP);
         Call<ResponseBody> call = redditAuthAPI.getAccessToken(authHeader, "password", username, password);
@@ -172,6 +169,7 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
                         Gson gson = new Gson();
                         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
                         redditAccessToken = jsonObject.get("access_token").getAsString();
+                        redditGetThread(trip.getSubreddit(), trip.getArticleId(), 3, 1);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -196,30 +194,36 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     try {
-                        String json = response.body().string();
-                        Gson gson = new Gson();
-                        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
-                        JsonArray children = jsonObject.getAsJsonObject("data").getAsJsonArray("children");
-                        comments = new ArrayList<>();
-                        for (JsonElement child : children) {
-                            JsonObject data = child.getAsJsonObject().getAsJsonObject("data");
-                            if (data.has("replies")) {
-                                JsonObject replies = data.getAsJsonObject("replies");
-                                if (replies.has("data")) {
-                                    JsonArray replyChildren = replies.getAsJsonObject("data").getAsJsonArray("children");
-                                    for (JsonElement replyChild : replyChildren) {
-                                        JsonObject replyData = replyChild.getAsJsonObject().getAsJsonObject("data");
-                                        if (replyData.has("body")) {
-                                            String comment = replyData.get("body").getAsString();
-                                            if (comment.length() > 200) {
-                                                comment = comment.substring(0, 200).trim() + "...";
-                                            }
-                                            comments.add(comment);
-                                        }
-                                    }
+                        String html = response.body().string();
+                        Document doc = Jsoup.parse(html);
+                        Elements comments = doc.select(".comment");
+                        for (Element comment : comments) {
+                            Log.i("COMMENT", comment.toString());
+                            String commentText = comment.text();
+                            String[] words = commentText.split(" ");
+                            int wordsToSkip = (words.length > 7 && words[7].equals("editado")) ? 12 : 6;
+                            if (words.length > wordsToSkip) {
+                                StringBuilder sb = new StringBuilder();
+                                for (int i = wordsToSkip; i < words.length; i++) {
+                                    sb.append(words[i]).append(" ");
                                 }
+                                commentText = sb.toString().trim(); // trim to remove the last space
                             }
+                            words = commentText.split(" ");
+                            wordsToSkip = (words.length > 1 && words[words.length - 2].equals("Responder")) ? 3 : 2;
+                            if (words.length > wordsToSkip) {
+                                StringBuilder sb = new StringBuilder();
+                                for (int i = 0; i < words.length - wordsToSkip; i++) {
+                                    sb.append(words[i]).append(" ");
+                                }
+                                commentText = sb.toString().trim(); // trim to remove the last space
+                            }
+                            if (commentText.length() > 500) {
+                                commentText = commentText.substring(0, 200).trim() + "...";
+                            }
+                            redditComments.add(commentText);
                         }
+                        updateComments();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -233,5 +237,23 @@ public class TripDetailsView extends FragmentActivity implements OnMapReadyCallb
                 // TODO: Handle the failure
             }
         });
+    }
+
+    private void updateComments() {
+        if (redditComments.size() > 0) {
+            redditIcon.setVisibility(LinearLayout.VISIBLE);
+            comment1TextView.setVisibility(TextView.VISIBLE);
+            comment1TextView.setText(redditComments.get(0));
+        }
+        if (redditComments.size() > 1) {
+            comment2UpperSpaceTextView.setVisibility(TextView.VISIBLE);
+            comment2TextView.setVisibility(TextView.VISIBLE);
+            comment2TextView.setText(redditComments.get(1));
+        }
+        if (redditComments.size() > 2) {
+            comment3UpperSpaceTextView.setVisibility(TextView.VISIBLE);
+            comment3TextView.setVisibility(TextView.VISIBLE);
+            comment3TextView.setText(redditComments.get(2));
+        }
     }
 }
