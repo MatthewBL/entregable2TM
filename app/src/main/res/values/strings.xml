@@ -34,4 +34,6 @@
     <string name="login_error_google_play_services">Parece que Google Play Services no está actualizado.</string>
     <string name="login_error_google_play_services_yes">Actualizar</string>
     <string name="login_error_google_play_services_no">Cancelar</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

@@ -5,13 +5,18 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.JsonObject;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import us.master.entregable2.services.FirebaseDatabaseService;
 import us.master.entregable2.services.GoogleMapsService;
 
@@ -170,10 +175,11 @@ public class TripFunctionalities {
     }
 
     public static LatLng obtainDestinationLatLng(Trip trip, String google_maps_key) {
-        return GoogleMapsService.getLatLngFromCityName(trip.getDestination(), google_maps_key);
+        return null; //GoogleMapsService.getLatLngFromCityName(trip.getDestination(), google_maps_key);
     }
 
     public static LatLng obtainStartPointLatLng(Trip trip, String google_maps_key) {
-        return GoogleMapsService.getLatLngFromCityName(trip.getStartPoint(), google_maps_key);
+        CompletableFuture<LatLng> future = GoogleMapsService.getLatLngFromCityName(trip.getStartPoint(), google_maps_key);
+        return future.join();
     }
 }

@@ -50,8 +50,8 @@ public class Trip implements Parcelable {
         dest.writeString(startPoint);
         dest.writeDouble(price);
         dest.writeString(description);
-        dest.writeSerializable(arrivalDate);
-        dest.writeSerializable(departureDate);
+        dest.writeString(arrivalDate);
+        dest.writeString(departureDate);
         dest.writeString(image);
         dest.writeString(subreddit);
         dest.writeString(articleId);

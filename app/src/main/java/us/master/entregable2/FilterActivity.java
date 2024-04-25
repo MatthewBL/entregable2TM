@@ -113,13 +113,6 @@ public class FilterActivity extends AppCompatActivity {
             }
         });
 
-        airportCheckBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                airportCheckBox.setChecked(!airportCheckBox.isChecked());
-            }
-        });
-
         // When the save button is clicked
         saveAndReturnButton.setOnClickListener(new View.OnClickListener() {
             @Override
