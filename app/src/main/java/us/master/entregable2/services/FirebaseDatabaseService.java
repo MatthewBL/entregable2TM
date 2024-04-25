@@ -21,6 +21,10 @@ public class FirebaseDatabaseService {
     private static FirebaseDatabaseService service;
     private static FirebaseDatabase mDatabase;
 
+    public static void resetUserId() {
+        userId = null;
+    }
+
     public static synchronized FirebaseDatabaseService getServiceInstance() {
         if (service == null || mDatabase == null) {
             service = new FirebaseDatabaseService();

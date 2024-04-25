@@ -60,6 +60,8 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        FirebaseDatabaseService.resetUserId();
+
         mAuth = FirebaseAuth.getInstance();
 
         signinButtonGoogle = findViewById(R.id.login_button_google);
@@ -82,6 +84,7 @@ public class LoginActivity extends AppCompatActivity {
 
         loginButtonSignup.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            intent.putExtra(RegisterActivity.EMAIL_PARAM, loginEmailEt.getText().toString());
             startActivity(intent);
         });
     }

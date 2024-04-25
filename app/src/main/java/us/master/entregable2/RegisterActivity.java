@@ -61,6 +61,7 @@ public class RegisterActivity extends AppCompatActivity {
             FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, pass)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
+
                             finish();
                         } else {
                             login_email.setError("Error al registrar el usuario");
