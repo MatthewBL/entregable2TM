@@ -2,7 +2,22 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="Tests in 'us.master.entregable2'">
+        <State />
+      </entry>
+      <entry key="TripListTest">
+        <State />
+      </entry>
       <entry key="app">
+        <State />
+      </entry>
+      <entry key="testSelectTripColumns()">
+        <State />
+      </entry>
+      <entry key="testTripDetails()">
+        <State />
+      </entry>
+      <entry key="testTripDetailsColumn()">
         <State />
       </entry>
     </value>

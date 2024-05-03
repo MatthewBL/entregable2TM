@@ -75,9 +75,8 @@ public class TripFunctionalities {
         }
     }
 
-    public static void generateTestTripList(long seed){
+    public static void generateTestTripList(long seed, CountDownLatch latch) {
         tripList.clear();
-        FirebaseDatabaseService.testing = true;
         FirebaseDatabaseService.getServiceInstance().clearTrips();
 
         String[] destinations = {"París", "Londres", "Nueva York", "Tokio", "Sídney", "Roma", "Berlín", "Madrid", "Pekín", "Río de Janeiro"};
@@ -118,6 +117,7 @@ public class TripFunctionalities {
             DatabaseReference tripsRef = FirebaseDatabaseService.getServiceInstance().getTrips();
             tripsRef.push().setValue(trip);
         }
+        latch.countDown();
     }
 
     public static void readTripData() {

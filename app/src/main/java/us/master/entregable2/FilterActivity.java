@@ -2,9 +2,13 @@ package us.master.entregable2;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -49,6 +53,27 @@ public class FilterActivity extends AppCompatActivity {
         maxPriceTextView = findViewById(R.id.maxPriceTextView);
         saveAndReturnButton = findViewById(R.id.button3);
         airportCheckBox = findViewById(R.id.airportCheckBox);
+
+        // Check if location services are enabled
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        boolean gps_enabled = false;
+        boolean network_enabled = false;
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch(Exception ex) {}
+
+        try {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch(Exception ex) {}
+
+        // Check if location permissions are granted
+        boolean locationPermissionGranted = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+
+        // If either condition is not met, disable the checkbox
+        if (!(gps_enabled || network_enabled) || !locationPermissionGranted) {
+            airportCheckBox.setEnabled(false);
+        }
 
         Intent intent = getIntent();
         String startDate = intent.getStringExtra("startDate");
